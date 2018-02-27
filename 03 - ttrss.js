@@ -23,12 +23,19 @@ const fs = require('fs');
   const openPageAndDownload = async (url) => {
     // 跳转到文章页
     await page.goto(url)
+    // 获取文章标题
+    const title = await page.evaluate(() => {
+      let titleSelector = 'h1.article-title a';
+      let titleDom = [...document.querySelectorAll(titleSelector)];
+      return titleDom[0].innerHTML
+    })
     // 在文章页上获取图片地址列表
     let imgUrls = await page.evaluate(() => {
       let selector = 'article.article-content img';
       let dom = [...document.querySelectorAll(selector)];
       return dom.map(e => e.src)
     })
+    // 下载图片
     imgUrls.forEach((e, i) => {
       axios.get(e, {
         responseType: 'stream'
@@ -37,12 +44,12 @@ const fs = require('fs');
           res.data.pipe(fs.createWriteStream(`./ttrss/${i}.${e.substr(e.length-3)}`));
         })
         .catch(err => {
-          console.log(err)
+          console.log('------------------------------')
         })
     });
   }
 
-  openPageAndDownload(pageUrls[0])
+  openPageAndDownload(pageUrls[1])
 
   //   await page.screenshot({
   //     path: 'screenshots/screenshots.png',
