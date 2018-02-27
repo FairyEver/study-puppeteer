@@ -7,7 +7,10 @@ const puppeteer = require('puppeteer');
     width: 1920,
     height: 1080
   })
-  await page.goto('https://www.baidu.com/');
-  await page.screenshot({path: 'screenshots/screenshots.png'});
+  await page.goto('https://github.com/FairyEver');
+  await page.screenshot({
+    path: 'screenshots/screenshots.png',
+    fullPage: true
+  });
   await browser.close();
 })()
