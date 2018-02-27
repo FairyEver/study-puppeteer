@@ -1,0 +1,19 @@
+{
+  "name": "study-puppeteer",
+  "version": "1.0.0",
+  "description": "puppeteer study",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FairyEver/study-puppeteer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FairyEver/study-puppeteer/issues"
+  },
+  "homepage": "https://github.com/FairyEver/study-puppeteer#readme"
+}
