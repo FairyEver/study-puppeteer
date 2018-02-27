@@ -8,6 +8,6 @@ const puppeteer = require('puppeteer');
     height: 1080
   })
   await page.goto('https://www.baidu.com/');
-  await page.screenshot({path: 'screenshots/example.png'});
+  await page.screenshot({path: 'screenshots/screenshots.png'});
   await browser.close();
 })()
