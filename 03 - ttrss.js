@@ -1,5 +1,3 @@
-// https://github.com/GoogleChrome/puppeteer
-
 const puppeteer = require('puppeteer');
 const axios = require('axios');
 const fs = require('fs');
@@ -31,7 +29,6 @@ const fs = require('fs');
       let dom = [...document.querySelectorAll(selector)];
       return dom.map(e => e.src)
     })
-    console.log(imgUrls)
     imgUrls.forEach((e, i) => {
       axios.get(e, {
         responseType: 'stream'
