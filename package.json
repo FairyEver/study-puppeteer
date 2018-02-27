@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/FairyEver/study-puppeteer/issues"
   },
-  "homepage": "https://github.com/FairyEver/study-puppeteer#readme"
+  "homepage": "https://github.com/FairyEver/study-puppeteer#readme",
+  "dependencies": {
+    "puppeteer": "^1.1.1"
+  }
 }
