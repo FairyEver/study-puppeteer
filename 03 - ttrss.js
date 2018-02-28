@@ -76,6 +76,17 @@ const fs = require('fs');
 					resolve()
 				}
 			}
+			// 返回一个进度条
+			const progressMaker = () => {
+				const progress = [
+					'[',
+					...[...Array(successNum)].fill('='),
+					...[...Array(badNum)].fill('x'),
+					...[...Array(allNum - successNum - badNum)].fill(' '),
+					`] ${String(successNum).padEnd(2, ' ')}-${String(badNum).padEnd(2, ' ')} / ${allNum}`
+				]
+				return progress.join('')
+			}
 			// 开始下载图片
 			imgUrls.forEach((e, i) => {
 				axios.get(e, {
@@ -87,14 +98,16 @@ const fs = require('fs');
 						write.on('close', () => {
 							successNum ++
 							checkFinished()
-							console.log(`👌 下载成功`);
+							// console.log(`👌 下载成功 第${i}张图片`);
+							console.log(progressMaker())
 						});
 						res.data.pipe(write);
 					})
 					.catch(err => {
 						badNum ++
 						checkFinished()
-						console.log(`🚫 下载失败`);
+						// console.log(`🚫 下载失败 第${i}张图片 地址: ${e}`);
+						console.log(progressMaker())
 					})
 			});
 		})
@@ -107,27 +120,33 @@ const fs = require('fs');
 	const openPageAndDownload = async (prop) => {
 		return new Promise(async (resolve, reject) => {
 			// 跳转到文章页
+			console.log(`正在打开 “${prop.href}”`)
 			await page.goto(prop.href);
+			console.log(`加载完毕 “${prop.href}”`)
 			// 获取文章标题
 			const title = await page.evaluate(() => {
 				let titleSelector = 'h1.article-title a';
 				let titleDom = [...document.querySelectorAll(titleSelector)];
 				return titleDom[0].innerHTML;
 			})
+			console.log(`文章名 《${title}》`)
 			// 在文章页上获取图片地址列表
 			let imgUrls = await page.evaluate(() => {
 				let selector = 'article.article-content img';
 				let dom = [...document.querySelectorAll(selector)];
 				return dom.map(e => e.src);
 			})
+			console.log(`共有${imgUrls.length}张图片`)
 			// 创建文件目录
 			const dir = prop.title
 			if (!fs.existsSync('./ttrss/' + dir)) {
 				fs.mkdirSync('./ttrss/' + dir);
 			}
+			console.log(`创建文件目录 “./ttrss/${dir}”`)
 			// 下载图片
-			downloadImages(imgUrls, dir)
-				.then(resolve)
+			console.log('开始下载本页图片')
+			await downloadImages(imgUrls, dir)
+			resolve()
 		})
 	}
 
@@ -143,16 +162,39 @@ const fs = require('fs');
 					startOnePage()
 				}
 			}
-			// 接下来要处理的是首页
+			// 根据一个列表打开页面 这个列表应该是文章列表
+			const startOpenPageInList = async (list) => {
+				console.log(`开始打开${list.length}篇文章`)
+				let now = 0
+				return new Promise((resolve, reject) => {
+					const open = async () => {
+						console.log(`正在打开第${now + 1}篇文章`)
+						await openPageAndDownload(list[now])
+						console.log(`第${now + 1}篇文章处理完成`)
+						now ++
+						if (now < list.length) {
+							open()
+						} else {
+							resolve()
+						}
+					}
+					open()
+				})
+			}
+			
 			if (nowPageIndex === 1) {
+				console.log('打开首页')
 				const list = await getArticleUrl(homePage);
+				console.log(`获取到${list.length}篇文章`)
 				nowPageIndex ++
-				console.log(list.map(e => e.title))
+				await startOpenPageInList(list)
 				nextPage()
 			} else {
+				console.log(`打开第${nowPageIndex}页`)
 				const list = await getArticleUrl(`${otherPage}${nowPageIndex}`);
+				console.log(`获取到${list.length}篇文章`)
 				nowPageIndex ++
-				console.log(list.map(e => e.title))
+				await startOpenPageInList(list)
 				nextPage()
 			}
 		}
