@@ -78,8 +78,8 @@ const fs = require('fs');
           const fileName = `./ttrss/${title}/${i}.${e.substr(e.length-3)}`
           const write = fs.createWriteStream(fileName);
           write.on('close', () => {
-            console.log('close')
-          })
+            console.log('close');
+          });
           res.data.pipe(write);
           console.log(`👌 下载成功 [${e}]`);
         })
@@ -95,7 +95,7 @@ const fs = require('fs');
   // 只适用于没有分页的文章页
   const openPageAndDownload = async (prop) => {
     // 跳转到文章页
-    await page.goto(prop.href)
+    await page.goto(prop.href);
     // 获取文章标题
     const title = await page.evaluate(() => {
       let titleSelector = 'h1.article-title a';
