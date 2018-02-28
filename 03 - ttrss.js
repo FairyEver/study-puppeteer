@@ -81,13 +81,18 @@ const fs = require('fs');
       let dom = [...document.querySelectorAll(selector)];
       return dom.map(e => e.src)
     })
+    // 创建文件目录
+    const dir = prop.title
+    if (!fs.existsSync('./ttrss/' + dir)) {
+      fs.mkdirSync('./ttrss/' + dir)
+    }
     // 下载图片
     imgUrls.forEach((e, i) => {
       axios.get(e, {
         responseType: 'stream'
       })
         .then(res => {
-          res.data.pipe(fs.createWriteStream(`./ttrss/${prop.title}-${i}.${e.substr(e.length-3)}`));
+          res.data.pipe(fs.createWriteStream(`./ttrss/${prop.title}/${i}.${e.substr(e.length-3)}`));
         })
         .catch(err => {
           console.log(`${e} 下载失败`)
@@ -102,8 +107,6 @@ const fs = require('fs');
     const list = await getArticleUrl(homePage)
     // console.log(list)
     await openPageAndDownload(list[0])
-    await openPageAndDownload(list[1])
-    await openPageAndDownload(list[2])
   }
 
 
