@@ -11,7 +11,7 @@ const fs = require('fs');
   // 列表页一共多少页
   let listPageTotal = 0
   // 当前正在第几页
-  let nowPageIndex = 0
+  let nowPageIndex = 1
   // 第一页
   let homePage = 'https://ttrss.com/'
   // 从第二页开始的地址格式
@@ -65,28 +65,39 @@ const fs = require('fs');
 
 
   const downloadImages = (imgUrls, title) => {
-    // 所有图片的数量
-    let all = imgUrls.length;
-    let successNum = 0;
-    let badNum = 0;
-    // 开始下载图片
-    imgUrls.forEach((e, i) => {
-      axios.get(e, {
-        responseType: 'stream'
-      })
-        .then(res => {
-          const fileName = `./ttrss/${title}/${i}.${e.substr(e.length-3)}`
-          const write = fs.createWriteStream(fileName);
-          write.on('close', () => {
-            console.log('close');
-          });
-          res.data.pipe(write);
-          console.log(`👌 下载成功 [${e}]`);
+    return new Promise((resolve, reject) => {
+      // 所有图片的数量
+      let allNum = imgUrls.length;
+      let successNum = 0;
+      let badNum = 0;
+      // 检查是否完成
+      const checkFinished = () => {
+        if (successNum + badNum === allNum) {
+          resolve()
+        }
+      }
+      // 开始下载图片
+      imgUrls.forEach((e, i) => {
+        axios.get(e, {
+          responseType: 'stream'
         })
-        .catch(err => {
-          console.log(`🚫 下载失败 [${e}]`);
-        })
-    });
+          .then(res => {
+            const fileName = `./ttrss/${title}/${i}.${e.substr(e.length-3)}`
+            const write = fs.createWriteStream(fileName);
+            write.on('close', () => {
+              successNum ++
+              checkFinished()
+              console.log(`👌 下载成功`);
+            });
+            res.data.pipe(write);
+          })
+          .catch(err => {
+            badNum ++
+            checkFinished()
+            console.log(`🚫 下载失败`);
+          })
+      });
+    })
   }
 
 
@@ -94,36 +105,57 @@ const fs = require('fs');
   // 打开一个文章页面 并且下载这个页面上的图片
   // 只适用于没有分页的文章页
   const openPageAndDownload = async (prop) => {
-    // 跳转到文章页
-    await page.goto(prop.href);
-    // 获取文章标题
-    const title = await page.evaluate(() => {
-      let titleSelector = 'h1.article-title a';
-      let titleDom = [...document.querySelectorAll(titleSelector)];
-      return titleDom[0].innerHTML;
+    return new Promise(async (resolve, reject) => {
+      // 跳转到文章页
+      await page.goto(prop.href);
+      // 获取文章标题
+      const title = await page.evaluate(() => {
+        let titleSelector = 'h1.article-title a';
+        let titleDom = [...document.querySelectorAll(titleSelector)];
+        return titleDom[0].innerHTML;
+      })
+      // 在文章页上获取图片地址列表
+      let imgUrls = await page.evaluate(() => {
+        let selector = 'article.article-content img';
+        let dom = [...document.querySelectorAll(selector)];
+        return dom.map(e => e.src);
+      })
+      // 创建文件目录
+      const dir = prop.title
+      if (!fs.existsSync('./ttrss/' + dir)) {
+        fs.mkdirSync('./ttrss/' + dir);
+      }
+      // 下载图片
+      downloadImages(imgUrls, dir)
+        .then(resolve)
     })
-    // 在文章页上获取图片地址列表
-    let imgUrls = await page.evaluate(() => {
-      let selector = 'article.article-content img';
-      let dom = [...document.querySelectorAll(selector)];
-      return dom.map(e => e.src);
-    })
-    // 创建文件目录
-    const dir = prop.title
-    if (!fs.existsSync('./ttrss/' + dir)) {
-      fs.mkdirSync('./ttrss/' + dir);
-    }
-    // 下载图片
-    downloadImages(imgUrls, dir);
   }
 
 
   
   const start = async () => {
-    // 获取这个页面上文章链接地址
-    const list = await getArticleUrl(homePage);
-    // console.log(list)
-    await openPageAndDownload(list[1]);
+    // 处理一页
+    const startOnePage = async () => {
+      const nextPage = () => {
+        if (nowPageIndex <= listPageTotal) {
+          startOnePage()
+        }
+      }
+      // 接下来要处理的是首页
+      if (nowPageIndex === 1) {
+        const list = await getArticleUrl(homePage);
+        nowPageIndex ++
+        console.log(list.map(e => e.title))
+        nextPage()
+      } else {
+        const list = await getArticleUrl(`${otherPage}${nowPageIndex}`);
+        nowPageIndex ++
+        console.log(list.map(e => e.title))
+        nextPage()
+      }
+    }
+    // 触发递归
+    startOnePage()
   }
 
 
