@@ -11,15 +11,23 @@ const fs = require('fs');
   // 打开页面
   const page = await browser.newPage();
   page.setDefaultNavigationTimeout(100000);
-  await page.goto('https://ttrss.com/');
 
-  // 获取这个页面上文章链接地址
-  let pageUrls = await page.evaluate(() => {
-    let selector = 'article.excerpt h2 a';
-    let pageUrlsDom = [...document.querySelectorAll(selector)];
-    return pageUrlsDom.map(e => e.href)
-  });
+  // 打开一个页面 并返回这个页面上存在的文章链接
+  // 适用于类似首页那种页面
+  const getArticleUrl = async (url) => {
+    // 打开指定的页面
+    await page.goto(url);
+    // 获取这个页面上文章链接地址
+    let pageUrls = await page.evaluate(() => {
+      let selector = 'article.excerpt h2 a';
+      let pageUrlsDom = [...document.querySelectorAll(selector)];
+      return pageUrlsDom.map(e => e.href)
+    });
+    return pageUrls;
+  }
 
+  // 打开一个文章页面 并且下载这个页面上的图片
+  // 只适用于没有分页的文章页
   const openPageAndDownload = async (url) => {
     // 跳转到文章页
     await page.goto(url)
@@ -44,10 +52,13 @@ const fs = require('fs');
           res.data.pipe(fs.createWriteStream(`./ttrss/${i}.${e.substr(e.length-3)}`));
         })
         .catch(err => {
-          console.log('------------------------------')
+          console.log(`${e} 下载失败`)
         })
     });
   }
+
+  // 获取这个页面上文章链接地址
+  const pageUrls = await getArticleUrl('https://ttrss.com/')
 
   openPageAndDownload(pageUrls[0])
 
