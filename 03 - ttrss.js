@@ -64,6 +64,30 @@ const fs = require('fs');
 
 
 
+  const downloadImages = (imgUrls, title) => {
+    // 所有图片的数量
+    let all = imgUrls.length;
+    imgUrls.forEach((e, i) => {
+      axios.get(e, {
+        responseType: 'stream'
+      })
+        .then(res => {
+          const fileName = `./ttrss/${title}/${i}.${e.substr(e.length-3)}`
+          const write = fs.createWriteStream(fileName);
+          write.on('close', () => {
+            console.log('close')
+          })
+          res.data.pipe(write);
+          console.log(`👌 下载成功 [${e}]`)
+        })
+        .catch(err => {
+          console.log(`🚫 下载失败 [${e}]`)
+        })
+    });
+  }
+
+
+
   // 打开一个文章页面 并且下载这个页面上的图片
   // 只适用于没有分页的文章页
   const openPageAndDownload = async (prop) => {
@@ -87,17 +111,7 @@ const fs = require('fs');
       fs.mkdirSync('./ttrss/' + dir)
     }
     // 下载图片
-    imgUrls.forEach((e, i) => {
-      axios.get(e, {
-        responseType: 'stream'
-      })
-        .then(res => {
-          res.data.pipe(fs.createWriteStream(`./ttrss/${prop.title}/${i}.${e.substr(e.length-3)}`));
-        })
-        .catch(err => {
-          console.log(`${e} 下载失败`)
-        })
-    });
+    downloadImages(imgUrls, dir)
   }
 
 
@@ -106,11 +120,12 @@ const fs = require('fs');
     // 获取这个页面上文章链接地址
     const list = await getArticleUrl(homePage)
     // console.log(list)
-    await openPageAndDownload(list[0])
+    await openPageAndDownload(list[1])
   }
 
 
 
+  console.log('👉 开始')
   start()
 
   
