@@ -28,7 +28,21 @@ const fs = require('fs');
     await page.goto(url);
     // 获取这个页面上文章链接地址
     let pageUrls = await page.evaluate(() => {
-      return [...document.querySelectorAll('article.excerpt h2 a')].map(e => e.href)
+      const title = [...document.querySelectorAll('article.excerpt h2 a')]
+      const note = [...document.querySelectorAll('article.excerpt p.note')]
+      const tagAndDate = [...document.querySelectorAll('article.excerpt p.text-muted span.rightkong')]
+      return title.map((e, i) => {
+        const tagAndDateText = tagAndDate[i].innerHTML
+        const tag = tagAndDateText.match(/\s+[\u4e00-\u9fa5_a-zA-Z0-9]+\s+/g)
+        const date = tagAndDateText.match(/\d+-\d+-\d+/g)
+        return {
+          href: e.href,
+          title: e.innerHTML,
+          note: note[i].innerHTML,
+          tag: tag ? tag[0].trim() : '',
+          date: date ? date[0] : ''
+        }
+      })
     });
     // 返回这个页面上的列表链接
     return pageUrls;
@@ -66,12 +80,10 @@ const fs = require('fs');
         })
     });
   }
-
-
-
   // 获取这个页面上文章链接地址
-  const pageUrls = await getArticleUrl('https://ttrss.com/')
-  openPageAndDownload(pageUrls[0])
+  const list = await getArticleUrl('https://ttrss.com/')
+  console.log(list)
+  openPageAndDownload(list[0].href)
 
   //   await page.screenshot({
   //     path: 'screenshots/screenshots.png',
