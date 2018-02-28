@@ -4,12 +4,15 @@ const fs = require('fs');
 
 
 
-// 列表页一共多少页
-let listPageTotal = 0
-
-
-
 (async () => {
+
+
+  
+  // 列表页一共多少页
+  let listPageTotal = 0
+
+
+
   const browser = await puppeteer.launch({
     headless: false
   });
@@ -25,9 +28,7 @@ let listPageTotal = 0
     await page.goto(url);
     // 获取这个页面上文章链接地址
     let pageUrls = await page.evaluate(() => {
-      let selector = 'article.excerpt h2 a';
-      let pageUrlsDom = [...document.querySelectorAll(selector)];
-      return pageUrlsDom.map(e => e.href)
+      return [...document.querySelectorAll('article.excerpt h2 a')].map(e => e.href)
     });
     // 返回这个页面上的列表链接
     return pageUrls;
