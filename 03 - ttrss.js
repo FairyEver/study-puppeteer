@@ -83,7 +83,7 @@ const fs = require('fs');
 					...[...Array(successNum)].fill('='),
 					...[...Array(badNum)].fill('x'),
 					...[...Array(allNum - successNum - badNum)].fill(' '),
-					`] ${String(successNum).padEnd(2, ' ')}-${String(badNum).padEnd(2, ' ')} / ${allNum}`
+					`] ${String(successNum).padStart(2, ' ')}-${String(badNum).padEnd(2, ' ')} / ${allNum}`
 				]
 				return progress.join('')
 			}
