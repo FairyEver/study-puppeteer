@@ -10,6 +10,12 @@ const fs = require('fs');
   
   // 列表页一共多少页
   let listPageTotal = 0
+  // 当前正在第几页
+  let nowPageIndex = 0
+  // 第一页
+  let homePage = 'https://ttrss.com/'
+  // 从第二页开始的地址格式
+  let otherPage = 'https://ttrss.com/page/'
 
 
 
@@ -44,6 +50,14 @@ const fs = require('fs');
         }
       })
     });
+    // 如果还没有获取列表页的页数 在这里获取一次
+    if (listPageTotal === 0) {
+      const tempListPageTotal = await page.evaluate(() => {
+        const pageTotalDom = [...document.querySelectorAll('div.pagination ul li:last-child span')]
+        return pageTotalDom[0].innerHTML
+      })
+      listPageTotal = Number(tempListPageTotal.match(/\d+/g)[0])
+    }
     // 返回这个页面上的列表链接
     return pageUrls;
   }
@@ -52,9 +66,9 @@ const fs = require('fs');
 
   // 打开一个文章页面 并且下载这个页面上的图片
   // 只适用于没有分页的文章页
-  const openPageAndDownload = async (url) => {
+  const openPageAndDownload = async (prop) => {
     // 跳转到文章页
-    await page.goto(url)
+    await page.goto(prop.href)
     // 获取文章标题
     const title = await page.evaluate(() => {
       let titleSelector = 'h1.article-title a';
@@ -73,17 +87,30 @@ const fs = require('fs');
         responseType: 'stream'
       })
         .then(res => {
-          res.data.pipe(fs.createWriteStream(`./ttrss/${i}.${e.substr(e.length-3)}`));
+          res.data.pipe(fs.createWriteStream(`./ttrss/${prop.title}-${i}.${e.substr(e.length-3)}`));
         })
         .catch(err => {
           console.log(`${e} 下载失败`)
         })
     });
   }
-  // 获取这个页面上文章链接地址
-  const list = await getArticleUrl('https://ttrss.com/')
-  console.log(list)
-  openPageAndDownload(list[0].href)
+
+
+  
+  const start = async () => {
+    // 获取这个页面上文章链接地址
+    const list = await getArticleUrl(homePage)
+    // console.log(list)
+    await openPageAndDownload(list[0])
+    await openPageAndDownload(list[1])
+    await openPageAndDownload(list[2])
+  }
+
+
+
+  start()
+
+  
 
   //   await page.screenshot({
   //     path: 'screenshots/screenshots.png',
