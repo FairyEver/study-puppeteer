@@ -67,6 +67,9 @@ const fs = require('fs');
   const downloadImages = (imgUrls, title) => {
     // 所有图片的数量
     let all = imgUrls.length;
+    let successNum = 0;
+    let badNum = 0;
+    // 开始下载图片
     imgUrls.forEach((e, i) => {
       axios.get(e, {
         responseType: 'stream'
@@ -78,10 +81,10 @@ const fs = require('fs');
             console.log('close')
           })
           res.data.pipe(write);
-          console.log(`👌 下载成功 [${e}]`)
+          console.log(`👌 下载成功 [${e}]`);
         })
         .catch(err => {
-          console.log(`🚫 下载失败 [${e}]`)
+          console.log(`🚫 下载失败 [${e}]`);
         })
     });
   }
@@ -97,30 +100,30 @@ const fs = require('fs');
     const title = await page.evaluate(() => {
       let titleSelector = 'h1.article-title a';
       let titleDom = [...document.querySelectorAll(titleSelector)];
-      return titleDom[0].innerHTML
+      return titleDom[0].innerHTML;
     })
     // 在文章页上获取图片地址列表
     let imgUrls = await page.evaluate(() => {
       let selector = 'article.article-content img';
       let dom = [...document.querySelectorAll(selector)];
-      return dom.map(e => e.src)
+      return dom.map(e => e.src);
     })
     // 创建文件目录
     const dir = prop.title
     if (!fs.existsSync('./ttrss/' + dir)) {
-      fs.mkdirSync('./ttrss/' + dir)
+      fs.mkdirSync('./ttrss/' + dir);
     }
     // 下载图片
-    downloadImages(imgUrls, dir)
+    downloadImages(imgUrls, dir);
   }
 
 
   
   const start = async () => {
     // 获取这个页面上文章链接地址
-    const list = await getArticleUrl(homePage)
+    const list = await getArticleUrl(homePage);
     // console.log(list)
-    await openPageAndDownload(list[1])
+    await openPageAndDownload(list[1]);
   }
 
 
