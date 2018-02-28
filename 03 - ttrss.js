@@ -49,7 +49,7 @@ const fs = require('fs');
     });
   }
 
-  openPageAndDownload(pageUrls[1])
+  openPageAndDownload(pageUrls[0])
 
   //   await page.screenshot({
   //     path: 'screenshots/screenshots.png',
