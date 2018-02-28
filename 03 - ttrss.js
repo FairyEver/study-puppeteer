@@ -2,15 +2,21 @@ const puppeteer = require('puppeteer');
 const axios = require('axios');
 const fs = require('fs');
 
-(async () => {
 
+
+// 列表页一共多少页
+let listPageTotal = 0
+
+
+
+(async () => {
   const browser = await puppeteer.launch({
     headless: false
   });
-
-  // 打开页面
   const page = await browser.newPage();
   page.setDefaultNavigationTimeout(100000);
+
+
 
   // 打开一个页面 并返回这个页面上存在的文章链接
   // 适用于类似首页那种页面
@@ -23,8 +29,11 @@ const fs = require('fs');
       let pageUrlsDom = [...document.querySelectorAll(selector)];
       return pageUrlsDom.map(e => e.href)
     });
+    // 返回这个页面上的列表链接
     return pageUrls;
   }
+
+
 
   // 打开一个文章页面 并且下载这个页面上的图片
   // 只适用于没有分页的文章页
@@ -57,9 +66,10 @@ const fs = require('fs');
     });
   }
 
+
+
   // 获取这个页面上文章链接地址
   const pageUrls = await getArticleUrl('https://ttrss.com/')
-
   openPageAndDownload(pageUrls[0])
 
   //   await page.screenshot({
