@@ -202,13 +202,15 @@ const initDownLoadProgressBar = (total) => {
 				nowPageIndex ++
 				await startOpenPageInList(list)
 				nextPage()
-			} else {
+			} else if (nowPageIndex <= listPageTotal) {
 				console.log(`打开第${nowPageIndex}页`)
 				const list = await getArticleUrl(`${otherPage}${nowPageIndex}`);
 				console.log(`获取到${list.length}篇文章`)
 				nowPageIndex ++
 				await startOpenPageInList(list)
 				nextPage()
+			} else {
+				console.log('👉 结束')
 			}
 		}
 		// 触发递归
