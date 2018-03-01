@@ -124,11 +124,10 @@ const initDownLoadProgressBar = (total) => {
 	// 打开一个文章页面 并且下载这个页面上的图片
 	const openPageAndDownload = async (prop) => {
 		return new Promise(async (resolve, reject) => {
-			// 判断如果是 ROSI 就跳过
-			// const reg = /^每日一拾/
-			// if (!reg.test(prop.title)) {
+			// 临时测试
+			// if (prop.title !== 'ROSI – NO.2248rosiMM无内丝袜秀美臀 34P') {
 			// 	resolve();
-			// 	console.log(`忽略 ${prop.href}`)
+			// 	console.log(`忽略`)
 			// 	return;
 			// }
 			// 跳转到文章页
@@ -139,14 +138,24 @@ const initDownLoadProgressBar = (total) => {
 			const title = await page.evaluate(() => {
 				let titleSelector = 'h1.article-title a';
 				let titleDom = [...document.querySelectorAll(titleSelector)];
-				return titleDom[0].innerHTML;
+				return titleDom[0] ? titleDom[0].innerHTML : '没有获取到标题';
 			})
-			// 在文章页上获取图片地址列表
-			let imgUrls = await page.evaluate(() => {
-				let selector = 'article.article-content img';
-				let dom = [...document.querySelectorAll(selector)];
-				return dom.map(e => e.src);
+			// 在这里需要判断一下 这个页面上是否还有分页
+			const hasArticlePaging = await page.evaluate(() => {
+				return [...document.querySelectorAll('div.article-paging')].length !== 0
 			})
+			let imgUrls = []
+			if (hasArticlePaging) {
+				// 需要翻页获取所有的图片
+				console.log('需要翻页获取所有的图片')
+			} else {
+				// 在文章页上获取图片地址列表
+				imgUrls = await page.evaluate(() => {
+					let selector = 'article.article-content img';
+					let dom = [...document.querySelectorAll(selector)];
+					return dom.map(e => e.src);
+				})
+			}
 			console.log(`《${title}》共有${imgUrls.length}张图片`)
 			// 回到首页
 			page.goto(homePage)
@@ -156,7 +165,9 @@ const initDownLoadProgressBar = (total) => {
 				fs.mkdirSync('./ttrss/' + dir);
 			}
 			// 下载图片
-			await downloadImages(imgUrls, dir);
+			if (imgUrls.length !== 0) {
+				// await downloadImages(imgUrls, dir);
+			}
 			resolve();
 		})
 	}
@@ -194,16 +205,16 @@ const initDownLoadProgressBar = (total) => {
 			}
 			
 			if (nowPageIndex === 1) {
-				console.log('打开首页')
+				console.log('打开首页'.magenta)
 				const list = await getArticleUrl(homePage);
-				console.log(`获取到${list.length}篇文章`)
+				console.log(`在首页获取到${list.length}篇文章`.magenta)
 				nowPageIndex ++
 				await startOpenPageInList(list)
 				nextPage()
 			} else if (nowPageIndex <= listPageTotal) {
-				console.log(`打开第${nowPageIndex}页`)
+				console.log(`打开第${nowPageIndex}页`.magenta)
 				const list = await getArticleUrl(`${otherPage}${nowPageIndex}`);
-				console.log(`获取到${list.length}篇文章`)
+				console.log(`获取到${list.length}篇文章`.magenta)
 				nowPageIndex ++
 				await startOpenPageInList(list)
 				nextPage()
