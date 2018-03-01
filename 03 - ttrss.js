@@ -131,11 +131,11 @@ const initDownLoadProgressBar = (total) => {
 			// 	return;
 			// }
 			// 排除rosi
-			if (/^ROSI/.test(prop.title)) {
-				console.log(`忽略 ROSI`);
-				resolve();
-				return;
-			}
+			// if (/^ROSI/.test(prop.title)) {
+			// 	console.log(`忽略 ROSI`);
+			// 	resolve();
+			// 	return;
+			// }
 			// 跳转到文章页
 			await page.goto(prop.href, {
 				waitUntil: 'domcontentloaded'
