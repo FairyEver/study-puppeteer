@@ -8,9 +8,8 @@ const ProgressBar = require('progress')
 const colors = require('colors');
 
 
+
 var bar = null;
-
-
 const initDownLoadProgressBar = (total) => {
 	bar = new ProgressBar('[:bar] :percent :current/:total', {
 		incomplete: ' ',
@@ -21,9 +20,6 @@ const initDownLoadProgressBar = (total) => {
 
 
 (async () => {
-
-
-	
 	// 列表页一共多少页
 	let listPageTotal = 0
 	// 当前正在第几页
@@ -39,7 +35,7 @@ const initDownLoadProgressBar = (total) => {
 		headless: false
 	});
 	const page = await browser.newPage();
-	page.setDefaultNavigationTimeout(100000);
+	// page.setDefaultNavigationTimeout(100000);
 
 
 
@@ -80,6 +76,7 @@ const initDownLoadProgressBar = (total) => {
 
 
 
+	// 传入一组图片的地址 下载这些图片 全部结束后返回
 	const downloadImages = (imgUrls, title) => {
 		return new Promise((resolve, reject) => {
 			// 所有图片的数量
