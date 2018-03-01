@@ -1,7 +1,11 @@
 const puppeteer = require('puppeteer');
 const axios = require('axios');
 const fs = require('fs');
+
+// https://github.com/visionmedia/node-progress
 const ProgressBar = require('progress')
+// https://www.npmjs.com/package/colors
+const colors = require('colors');
 
 
 var bar = null;
@@ -33,7 +37,7 @@ const initDownLoadProgressBar = (total) => {
 
 
 	const browser = await puppeteer.launch({
-		// headless: false
+		headless: false
 	});
 	const page = await browser.newPage();
 	page.setDefaultNavigationTimeout(100000);
@@ -86,6 +90,9 @@ const initDownLoadProgressBar = (total) => {
 			// 检查是否完成
 			const checkFinished = () => {
 				if (successNum + badNum === allNum) {
+					const textSuccess = (badNum === 0 ? '全部下载成功' : `下载成功:${successNum}`).green;
+					const textBad = badNum !== 0 ? `失败:${badNum}`.red : ''
+					console.log(textSuccess + ' ' + textBad)
 					resolve()
 				}
 			}
@@ -94,22 +101,25 @@ const initDownLoadProgressBar = (total) => {
 			imgUrls.forEach((e, i) => {
 				axios.get(e, {
 					responseType: 'stream',
-					timeout: 3000
+					timeout: 10000
 				})
 					.then(res => {
 						const fileName = `./ttrss/${title}/${i}.${e.substr(e.length-3)}`
 						const write = fs.createWriteStream(fileName);
-						write.on('close', () => {
-							successNum ++
-							checkFinished()
-							bar.tick();
-						});
+						// write.on('close', () => {
+						// 	successNum ++
+						// 	checkFinished()
+						// 	bar.tick();
+						// });
 						res.data.pipe(write);
+						successNum ++
+						bar.tick();
+						checkFinished();
 					})
 					.catch(err => {
 						badNum ++
-						checkFinished()
 						bar.tick();
+						checkFinished();
 					})
 			});
 		})
@@ -122,12 +132,12 @@ const initDownLoadProgressBar = (total) => {
 	const openPageAndDownload = async (prop) => {
 		return new Promise(async (resolve, reject) => {
 			// 判断如果是 ROSI 就跳过
-			const reg = /^每日一拾/
-			if (!reg.test(prop.title)) {
-				resolve();
-				console.log(`忽略 ${prop.href}`)
-				return;
-			}
+			// const reg = /^每日一拾/
+			// if (!reg.test(prop.title)) {
+			// 	resolve();
+			// 	console.log(`忽略 ${prop.href}`)
+			// 	return;
+			// }
 			// 跳转到文章页
 			console.log(`正在打开 “${prop.href}”`)
 			await page.goto(prop.href, {
