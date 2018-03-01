@@ -124,18 +124,6 @@ const initDownLoadProgressBar = (total) => {
 	// 打开一个文章页面 并且下载这个页面上的图片
 	const openPageAndDownload = async (prop) => {
 		return new Promise(async (resolve, reject) => {
-			// 临时测试
-			// if (prop.title !== 'ROSI – NO.2253rosi运动衫短袖妹子的居家蓝白胖次30P') {
-			// 	resolve();
-			// 	console.log(`忽略`)
-			// 	return;
-			// }
-			// 排除rosi
-			// if (/^ROSI/.test(prop.title)) {
-			// 	console.log(`忽略 ROSI`);
-			// 	resolve();
-			// 	return;
-			// }
 			// 跳转到文章页
 			await page.goto(prop.href, {
 				waitUntil: 'domcontentloaded'
@@ -218,6 +206,7 @@ const initDownLoadProgressBar = (total) => {
 			if (imgUrls.length !== 0) {
 				await downloadImages(imgUrls, dir);
 			}
+			// 结束
 			resolve();
 		})
 	}
@@ -253,7 +242,6 @@ const initDownLoadProgressBar = (total) => {
 					open()
 				})
 			}
-			
 			if (nowPageIndex === 1) {
 				console.log('打开首页'.magenta)
 				const list = await getArticleUrl(homePage);
@@ -270,7 +258,8 @@ const initDownLoadProgressBar = (total) => {
 				await startOpenPageInList(list)
 				nextPage()
 			} else {
-				console.log('👉 结束')
+				console.log('👉 结束');
+				await browser.close();
 			}
 		}
 		// 触发递归
@@ -281,13 +270,4 @@ const initDownLoadProgressBar = (total) => {
 
 	console.log('👉 开始')
 	start()
-
-	
-
-	//   await page.screenshot({
-	//     path: 'screenshots/screenshots.png',
-	//     fullPage: true
-	//   });
-	//   await browser.close();
-
 })()
