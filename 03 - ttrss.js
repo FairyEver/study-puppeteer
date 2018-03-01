@@ -125,9 +125,15 @@ const initDownLoadProgressBar = (total) => {
 	const openPageAndDownload = async (prop) => {
 		return new Promise(async (resolve, reject) => {
 			// 临时测试
-			if (prop.title !== 'ROSI – NO.2253rosi运动衫短袖妹子的居家蓝白胖次30P') {
+			// if (prop.title !== 'ROSI – NO.2253rosi运动衫短袖妹子的居家蓝白胖次30P') {
+			// 	resolve();
+			// 	console.log(`忽略`)
+			// 	return;
+			// }
+			// 排除rosi
+			if (/^ROSI/.test(prop.title)) {
+				console.log(`忽略 ROSI`);
 				resolve();
-				console.log(`忽略`)
 				return;
 			}
 			// 跳转到文章页
@@ -161,6 +167,7 @@ const initDownLoadProgressBar = (total) => {
 							prop.href,
 							...articlePagingUrls
 						]
+						console.log(`《${title}》分为${allArticlePagingUrls.length}页`)
 						// 打开一页并且获得这页上的图片地址
 						const openArticlePageAndGetImageUrls = async (index) => {
 							// 打开小分页里的一页
@@ -175,10 +182,16 @@ const initDownLoadProgressBar = (total) => {
 							imgUrls.forEach(url => {
 								tempImgUrls.push(url)
 							});
+							// 更新进度条
+							bar.tick();
+							// 是否进行下一页
 							if (index < allArticlePagingUrls.length - 1) {
 								await openArticlePageAndGetImageUrls(index + 1)
 							}
 						}
+						// 初始化进度条
+						initDownLoadProgressBar(allArticlePagingUrls.length);
+						// 开始访问每一页
 						await openArticlePageAndGetImageUrls(0)
 						// 将最后的结果返回
 						resolve(tempImgUrls)
@@ -249,12 +262,13 @@ const initDownLoadProgressBar = (total) => {
 				await startOpenPageInList(list)
 				nextPage()
 			} else if (nowPageIndex <= listPageTotal) {
-				// console.log(`打开第${nowPageIndex}页`.magenta)
-				// const list = await getArticleUrl(`${otherPage}${nowPageIndex}`);
-				// console.log(`获取到${list.length}篇文章`.magenta)
-				// nowPageIndex ++
-				// await startOpenPageInList(list)
-				// nextPage()
+				console.log('\n\n' + Array(80).fill('-').join('').blue + '\n\n')
+				console.log(`打开第${nowPageIndex}页`.magenta)
+				const list = await getArticleUrl(`${otherPage}${nowPageIndex}`);
+				console.log(`获取到${list.length}篇文章`.magenta)
+				nowPageIndex ++
+				await startOpenPageInList(list)
+				nextPage()
 			} else {
 				console.log('👉 结束')
 			}
