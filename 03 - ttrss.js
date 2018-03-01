@@ -11,14 +11,12 @@ const colors = require('colors');
 var bar = null;
 
 
-
 const initDownLoadProgressBar = (total) => {
 	bar = new ProgressBar('[:bar] :percent :current/:total', {
 		incomplete: ' ',
 		total
 	})
 }
-
 
 
 
@@ -107,18 +105,13 @@ const initDownLoadProgressBar = (total) => {
 					.then(res => {
 						const fileName = `./ttrss/${title}/${i}.${e.substr(e.length-3)}`
 						const write = fs.createWriteStream(fileName);
-						// write.on('close', () => {
-						// 	successNum ++
-						// 	checkFinished()
-						// 	bar.tick();
-						// });
 						res.data.pipe(write);
-						successNum ++
+						successNum ++;
 						bar.tick();
 						checkFinished();
 					})
 					.catch(err => {
-						badNum ++
+						badNum ++;
 						bar.tick();
 						checkFinished();
 					})
@@ -129,7 +122,6 @@ const initDownLoadProgressBar = (total) => {
 
 
 	// 打开一个文章页面 并且下载这个页面上的图片
-	// 只适用于没有分页的文章页
 	const openPageAndDownload = async (prop) => {
 		return new Promise(async (resolve, reject) => {
 			// 判断如果是 ROSI 就跳过
@@ -140,25 +132,22 @@ const initDownLoadProgressBar = (total) => {
 			// 	return;
 			// }
 			// 跳转到文章页
-			console.log(`正在打开 “${prop.href}”`)
 			await page.goto(prop.href, {
 				waitUntil: 'domcontentloaded'
 			});
-			console.log(`加载完毕 “${prop.href}”`)
 			// 获取文章标题
 			const title = await page.evaluate(() => {
 				let titleSelector = 'h1.article-title a';
 				let titleDom = [...document.querySelectorAll(titleSelector)];
 				return titleDom[0].innerHTML;
 			})
-			console.log(`文章名 《${title}》`)
 			// 在文章页上获取图片地址列表
 			let imgUrls = await page.evaluate(() => {
 				let selector = 'article.article-content img';
 				let dom = [...document.querySelectorAll(selector)];
 				return dom.map(e => e.src);
 			})
-			console.log(`共有${imgUrls.length}张图片`)
+			console.log(`《${title}》共有${imgUrls.length}张图片`)
 			// 回到首页
 			page.goto(homePage)
 			// 创建文件目录
@@ -166,9 +155,7 @@ const initDownLoadProgressBar = (total) => {
 			if (!fs.existsSync('./ttrss/' + dir)) {
 				fs.mkdirSync('./ttrss/' + dir);
 			}
-			console.log(`创建文件目录 “./ttrss/${dir}”`)
 			// 下载图片
-			console.log('开始下载本页图片')
 			await downloadImages(imgUrls, dir);
 			resolve();
 		})
@@ -188,13 +175,13 @@ const initDownLoadProgressBar = (total) => {
 			}
 			// 根据一个列表打开页面 这个列表应该是文章列表
 			const startOpenPageInList = async (list) => {
-				console.log(`开始打开${list.length}篇文章`)
 				let now = 0
 				return new Promise((resolve, reject) => {
 					const open = async () => {
-						console.log(`正在打开第${now + 1}篇文章`)
+						console.log('\n\n' + Array(80).fill('-').join('').blue + '\n\n')
+						// console.log(`正在打开第${now + 1}篇文章`)
 						await openPageAndDownload(list[now])
-						console.log(`第${now + 1}篇文章处理完成`)
+						// console.log(`第${now + 1}篇文章处理完成`)
 						now ++
 						if (now < list.length) {
 							open()
