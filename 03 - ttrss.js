@@ -125,11 +125,11 @@ const initDownLoadProgressBar = (total) => {
 	const openPageAndDownload = async (prop) => {
 		return new Promise(async (resolve, reject) => {
 			// 临时测试
-			// if (prop.title !== 'ROSI – NO.2248rosiMM无内丝袜秀美臀 34P') {
-			// 	resolve();
-			// 	console.log(`忽略`)
-			// 	return;
-			// }
+			if (prop.title !== 'ROSI – NO.2253rosi运动衫短袖妹子的居家蓝白胖次30P') {
+				resolve();
+				console.log(`忽略`)
+				return;
+			}
 			// 跳转到文章页
 			await page.goto(prop.href, {
 				waitUntil: 'domcontentloaded'
@@ -146,8 +146,45 @@ const initDownLoadProgressBar = (total) => {
 			})
 			let imgUrls = []
 			if (hasArticlePaging) {
-				// 需要翻页获取所有的图片
-				console.log('需要翻页获取所有的图片')
+				// 返回一组页面上每个页面中图片的集合
+				const getUrlsInMultiPage = async () => {
+					return new Promise(async (resolve, reject) => {
+						// 临时存放每页中获取的图片
+						let tempImgUrls = []
+						// let nowOpenPageIndex = 0
+						// 返回这个文章的分页链接
+						const articlePagingUrls = await page.evaluate(() => {
+							return [...document.querySelectorAll('div.article-paging a')].map(e => e.href)
+						})
+						// 所以算上本页一共是
+						const allArticlePagingUrls = [
+							prop.href,
+							...articlePagingUrls
+						]
+						// 打开一页并且获得这页上的图片地址
+						const openArticlePageAndGetImageUrls = async (index) => {
+							// 打开小分页里的一页
+							await page.goto(allArticlePagingUrls[index], {
+								waitUntil: 'domcontentloaded'
+							});
+							const imgUrls = await page.evaluate(() => {
+								let selector = 'article.article-content img';
+								let dom = [...document.querySelectorAll(selector)];
+								return dom.map(e => e.src);
+							})
+							imgUrls.forEach(url => {
+								tempImgUrls.push(url)
+							});
+							if (index < allArticlePagingUrls.length - 1) {
+								await openArticlePageAndGetImageUrls(index + 1)
+							}
+						}
+						await openArticlePageAndGetImageUrls(0)
+						// 将最后的结果返回
+						resolve(tempImgUrls)
+					})
+				}
+				imgUrls = await getUrlsInMultiPage()
 			} else {
 				// 在文章页上获取图片地址列表
 				imgUrls = await page.evaluate(() => {
@@ -166,7 +203,7 @@ const initDownLoadProgressBar = (total) => {
 			}
 			// 下载图片
 			if (imgUrls.length !== 0) {
-				// await downloadImages(imgUrls, dir);
+				await downloadImages(imgUrls, dir);
 			}
 			resolve();
 		})
@@ -212,12 +249,12 @@ const initDownLoadProgressBar = (total) => {
 				await startOpenPageInList(list)
 				nextPage()
 			} else if (nowPageIndex <= listPageTotal) {
-				console.log(`打开第${nowPageIndex}页`.magenta)
-				const list = await getArticleUrl(`${otherPage}${nowPageIndex}`);
-				console.log(`获取到${list.length}篇文章`.magenta)
-				nowPageIndex ++
-				await startOpenPageInList(list)
-				nextPage()
+				// console.log(`打开第${nowPageIndex}页`.magenta)
+				// const list = await getArticleUrl(`${otherPage}${nowPageIndex}`);
+				// console.log(`获取到${list.length}篇文章`.magenta)
+				// nowPageIndex ++
+				// await startOpenPageInList(list)
+				// nextPage()
 			} else {
 				console.log('👉 结束')
 			}
