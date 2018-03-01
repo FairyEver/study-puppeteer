@@ -13,7 +13,8 @@ var bar = null;
 
 
 const initDownLoadProgressBar = (total) => {
-	bar = new ProgressBar(':bar :current / :total', {
+	bar = new ProgressBar('[:bar] :percent :current/:total', {
+		incomplete: ' ',
 		total
 	})
 }
