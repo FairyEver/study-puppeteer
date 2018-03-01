@@ -1,6 +1,19 @@
 const puppeteer = require('puppeteer');
 const axios = require('axios');
 const fs = require('fs');
+const ProgressBar = require('progress')
+
+
+var bar = null;
+
+
+
+const initDownLoadProgressBar = (total) => {
+	bar = new ProgressBar(':bar :current / :total', {
+		total
+	})
+}
+
 
 
 
@@ -20,7 +33,7 @@ const fs = require('fs');
 
 
 	const browser = await puppeteer.launch({
-		headless: false
+		// headless: false
 	});
 	const page = await browser.newPage();
 	page.setDefaultNavigationTimeout(100000);
@@ -76,21 +89,12 @@ const fs = require('fs');
 					resolve()
 				}
 			}
-			// 返回一个进度条
-			const progressMaker = () => {
-				const progress = [
-					'[',
-					...[...Array(successNum)].fill('='),
-					...[...Array(badNum)].fill('x'),
-					...[...Array(allNum - successNum - badNum)].fill(' '),
-					`] ${String(successNum).padStart(2, ' ')}-${String(badNum).padEnd(2, ' ')} / ${allNum}`
-				]
-				return progress.join('')
-			}
 			// 开始下载图片
+			initDownLoadProgressBar(allNum)
 			imgUrls.forEach((e, i) => {
 				axios.get(e, {
-					responseType: 'stream'
+					responseType: 'stream',
+					timeout: 3000
 				})
 					.then(res => {
 						const fileName = `./ttrss/${title}/${i}.${e.substr(e.length-3)}`
@@ -98,16 +102,14 @@ const fs = require('fs');
 						write.on('close', () => {
 							successNum ++
 							checkFinished()
-							// console.log(`👌 下载成功 第${i}张图片`);
-							console.log(progressMaker())
+							bar.tick();
 						});
 						res.data.pipe(write);
 					})
 					.catch(err => {
 						badNum ++
 						checkFinished()
-						// console.log(`🚫 下载失败 第${i}张图片 地址: ${e}`);
-						console.log(progressMaker())
+						bar.tick();
 					})
 			});
 		})
@@ -119,9 +121,18 @@ const fs = require('fs');
 	// 只适用于没有分页的文章页
 	const openPageAndDownload = async (prop) => {
 		return new Promise(async (resolve, reject) => {
+			// 判断如果是 ROSI 就跳过
+			const reg = /^每日一拾/
+			if (!reg.test(prop.title)) {
+				resolve();
+				console.log(`忽略 ${prop.href}`)
+				return;
+			}
 			// 跳转到文章页
 			console.log(`正在打开 “${prop.href}”`)
-			await page.goto(prop.href);
+			await page.goto(prop.href, {
+				waitUntil: 'domcontentloaded'
+			});
 			console.log(`加载完毕 “${prop.href}”`)
 			// 获取文章标题
 			const title = await page.evaluate(() => {
@@ -137,6 +148,8 @@ const fs = require('fs');
 				return dom.map(e => e.src);
 			})
 			console.log(`共有${imgUrls.length}张图片`)
+			// 回到首页
+			page.goto(homePage)
 			// 创建文件目录
 			const dir = prop.title
 			if (!fs.existsSync('./ttrss/' + dir)) {
@@ -145,8 +158,8 @@ const fs = require('fs');
 			console.log(`创建文件目录 “./ttrss/${dir}”`)
 			// 下载图片
 			console.log('开始下载本页图片')
-			await downloadImages(imgUrls, dir)
-			resolve()
+			await downloadImages(imgUrls, dir);
+			resolve();
 		})
 	}
 
