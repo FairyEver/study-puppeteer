@@ -35,7 +35,7 @@ const initDownLoadProgressBar = (total) => {
 		headless: false
 	});
 	const page = await browser.newPage();
-	// page.setDefaultNavigationTimeout(100000);
+	page.setDefaultNavigationTimeout(100000);
 
 
 
@@ -97,7 +97,7 @@ const initDownLoadProgressBar = (total) => {
 			imgUrls.forEach((e, i) => {
 				axios.get(e, {
 					responseType: 'stream',
-					timeout: 10000
+					timeout: 20000
 				})
 					.then(res => {
 						const fileName = `./ttrss/${title}/${i}.${e.substr(e.length-3)}`
@@ -177,7 +177,7 @@ const initDownLoadProgressBar = (total) => {
 						// 初始化进度条
 						initDownLoadProgressBar(allArticlePagingUrls.length);
 						// 开始访问每一页
-						await openArticlePageAndGetImageUrls(0)
+						await openArticlePageAndGetImageUrls(0) 
 						// 将最后的结果返回
 						resolve(tempImgUrls)
 					})
@@ -240,6 +240,7 @@ const initDownLoadProgressBar = (total) => {
 				})
 			}
 			if (nowPageIndex === 1) {
+				console.log('\n\n' + Array(80).fill('-').join('').blue + '\n\n')
 				console.log('打开首页'.magenta)
 				const list = await getArticleUrl(homePage);
 				console.log(`在首页获取到${list.length}篇文章`.magenta)
