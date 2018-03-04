@@ -263,9 +263,7 @@ const initDownLoadProgressBar = (total) => {
 			}
 		}
 		// 触发递归
-		setTimeout(() => {
-			startOnePage()
-		}, 10000);
+		startOnePage();
 	}
 
 
