@@ -18,6 +18,15 @@ const initDownLoadProgressBar = (total) => {
 }
 
 
+const sleep = async (time = 0) => {
+	return new Promise((resolve, reject) => {
+	  setTimeout(() => {
+		  resolve();
+	  }, time);
+	})
+}
+
+
 
 (async () => {
 	// 列表页一共多少页
@@ -171,6 +180,7 @@ const initDownLoadProgressBar = (total) => {
 							bar.tick();
 							// 是否进行下一页
 							if (index < allArticlePagingUrls.length - 1) {
+								await sleep(1500)
 								await openArticlePageAndGetImageUrls(index + 1)
 							}
 						}
@@ -226,14 +236,11 @@ const initDownLoadProgressBar = (total) => {
 				return new Promise((resolve, reject) => {
 					const open = async () => {
 						console.log('\n\n' + Array(80).fill('-').join('').blue + '\n\n')
-						// console.log(`正在打开第${now + 1}篇文章`)
 						await openPageAndDownload(list[now])
-						// console.log(`第${now + 1}篇文章处理完成`)
 						now ++
 						if (now < list.length) {
-							setTimeout(() => {
-								open()
-							}, 10000);
+							await sleep(10000)
+							open()
 						} else {
 							resolve()
 						}
