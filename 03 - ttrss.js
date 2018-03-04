@@ -193,7 +193,7 @@ const initDownLoadProgressBar = (total) => {
 			}
 			console.log(`《${title}》共有${imgUrls.length}张图片`)
 			// 回到首页
-			page.goto(homePage)
+			page.goto('http://www.baidu.com')
 			// 创建文件目录
 			const dir = prop.title
 			if (!fs.existsSync('./ttrss/' + dir)) {
@@ -231,7 +231,9 @@ const initDownLoadProgressBar = (total) => {
 						// console.log(`第${now + 1}篇文章处理完成`)
 						now ++
 						if (now < list.length) {
-							open()
+							setTimeout(() => {
+								open()
+							}, 10000);
 						} else {
 							resolve()
 						}
@@ -261,7 +263,9 @@ const initDownLoadProgressBar = (total) => {
 			}
 		}
 		// 触发递归
-		startOnePage()
+		setTimeout(() => {
+			startOnePage()
+		}, 10000);
 	}
 
 
